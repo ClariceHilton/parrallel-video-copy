@@ -1,0 +1,140 @@
+<div id="videocontainer">
+  <style>
+    * {
+      margin: 0;
+      box-sizing: border-box;
+    }
+
+    #videocontainer {
+      position: relative;
+      width: 100vw;
+      /* margin-left: -33.33%; */
+    }
+
+    #videocontainer > div {
+      padding-bottom: 56.25%; /* 16:9 */
+      height: auto;
+    }     
+    #videocontainer > div > canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: auto;
+    }
+
+    #videocontainer > button {
+      background: transparent;
+      border: none !important;
+      /* Remove this to make button invsible */
+      /* background-color: red; */
+      font-size: 0;
+      height: 180px;
+      width: 180px;
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      z-index: 99;
+    }
+
+    #videocontainer > button:focus {
+      outline:  none;
+    }
+  </style>
+  <button id="videoswitch"></button>
+  <!-- <button id="videoswitch">Switch</button> -->
+  <div>
+    <canvas width="1920" height="1080" id="videocontext"></canvas>
+    <!-- VideoContext is a web audio API-like library for video / graphics elements -->
+    <script src="https://cdn.jsdelivr.net/npm/videocontext@0.51.7/dist/videocontext.min.js"></script>
+    <script>
+      // URLs to both video files
+      const vid1URL = './test.mp4'
+      const vid2URL = './test_INVERTED.mp4'
+
+      // Button switch
+      const button = document.getElementById('videoswitch')
+      // WebGL canvas to render videos too
+      const canvas = document.getElementById('videocontext');
+      const ctx = new VideoContext(canvas);
+
+      // Crossfader to switch between the two videos
+      const crossfade = ctx.effect(VideoContext.DEFINITIONS.CROSSFADE)
+      crossfade.connect(ctx.destination)
+
+      let vid01, vid02
+      // Recreate video every time it ends
+      const setupVideos = () => {
+        // Create video element
+        // URL to video or Video element
+        // Start offset (keep this 0)
+        // Preload: How many seconds before the video is to be played to start loading it.
+        // VideoElementAttributes {
+        //   loop,
+        //   muted
+        // }
+        vid01 = ctx.video(vid1URL, 0, 4, { muted: false })
+        vid01.connect(crossfade)
+        // Video elements need to be recreated when they finish
+        // Register a callback to recreate the elements every time the video finishes
+        vid01.registerCallback('ended', function() {
+          vid01.disconnect(crossfade)
+          // Stop video 2 if for whatever reason it's still playing
+          vid02.stop()     
+          vid02.disconnect(crossfade)
+          
+          setupVideos()
+          // Pause context
+          ctx.pause()
+        })
+
+        // Mute the second video so we don't double up the audio.
+        vid02 = ctx.video(vid2URL, 0, 4, { muted: true })
+        vid02.connect(crossfade)
+      }
+
+      setupVideos()
+
+      // Mix determines which video is being displayed
+      // You could *technically* blend between the two if you wanted...
+      let mix = 0
+      button.addEventListener('touchstart', (e) => {
+        mix = 1
+        crossfade.mix = mix
+      })
+      button.addEventListener('mousedown', (e) => {
+        mix = 1
+        crossfade.mix = mix
+      })
+
+      button.addEventListener('touchend', (e) => {
+        mix = 0
+        crossfade.mix = mix
+      })
+      button.addEventListener('mouseup', (e) => {
+        mix = 0
+        crossfade.mix = mix
+      })
+
+      // Play/Pause on canvas tap
+      canvas.addEventListener('click', (e) => {
+        switch (ctx.state) {
+          case VideoContext.STATE.PLAYING:
+            ctx.pause()
+            break
+          case VideoContext.STATE.PAUSED:
+            // If videos are loadede but not paused, start them ASAP
+            // videos cant be started more than once which is why we perform this check
+            if (vid01.state === 0) {
+              vid01.start(-1)
+              vid02.start(-1)
+            } 
+            ctx.play()
+            break
+          default:
+            break
+        }
+      })
+    </script>
+  </div>
+</div>
