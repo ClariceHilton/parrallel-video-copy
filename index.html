@@ -39,36 +39,35 @@
       left: 0;
       top: 0;
     }
-    #click {
-      width: 100%;
-      position: fixed; /* Sit on top of the page content */
- display: block; /* Hidden by default */
- width: 100%; /* Full width (cover the whole page) */
- height: 100%; /* Full height (cover the whole page) */
- top: 0;
- left: 0;
- right: 0;
- bottom: 0;
- background-color: rgba(0,0,0,0.5); /* Black background with opacity */
- z-index: 2; /* Specify a stack order in case you're using a different order for other elements */
- cursor: pointer; /* Add a pointer on hover */
-    }
+    #overlay {
+    position: fixed; /* Sit on top of the page content */
+    display: block; /* Hidden by default */
+    width: 100%; /* Full width (cover the whole page) */
+    height: 100%; /* Full height (cover the whole page) */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.5); /* Black background with opacity */
+    z-index: 2; /* Specify a stack order in case you're using a different order for other elements */
+    cursor: pointer; /* Add a pointer on hover */
+}
   </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 </head>
 <body>
   <main>
     <div class="iframe-container">
-        <img id="click" src="./click.jpg"/>
+      <img id="overlay" src="click.jpg"/>
+      <div>
         <iframe src="./parallel-video.html" frameborder="0"></iframe>
-
+      </div>
     </div>
     <script>
-
-$("div").click(function(e){
-  document.getElementById("click").style.display = "none";
+    $('#overlay').on('click', function(){
+  $(this).remove();
 });
-</script>
+    </script>
 </main>
 </body>
 </html>
